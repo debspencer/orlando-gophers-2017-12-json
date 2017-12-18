@@ -1,0 +1,8 @@
+{
+    "name": "<name of pizza>"
+    "size": "<size>",
+    "slices": <num_slices>,
+    "toppings": [
+        "<list-toppings>"
+    ]
+}

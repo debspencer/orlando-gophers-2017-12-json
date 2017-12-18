@@ -1,0 +1,231 @@
+Marshaling
+JSON Style
+18 Dec 2017
+
+Deb Spencer
+Director Ad Serving Infrastructure, Sonobi
+debspencer@gmail.com
+github.com/debspencer
+
+* JavaScript Object Notation
+- Human Readable file format
+- Widely used to transfer data between applications
+- Schemaless
+- Whitespace compressable
+- Key/Value format, with nested objects and lists
+- Smaller than XML!
+
+* Basic Marshal Example
+- func Marshal(v interface{}) ([]byte, error) - Marshal returns the JSON encoding of v.
+.play basic_marshal.go
+
+* Basic Marshal Example (Human Readable)
+- func MarshalIndent(v interface{}, prefix, indent string) ([]byte, error) - MarshalIndent is like Marshal but applies Indent to format the output.
+.play basic_marshal_indent.go /type/,$
+
+* Basic Marshal Example (with prefix)
+.play basic_marshal_indent2.go /type/,$
+
+* JSON Output
+- What we have
+.code upper.json
+- What the store wants
+.code lower.json
+
+* Public vs Private
+- Current Struct
+.code basic_marshal.go /^type Pizza/,/^}/
+- Won't work (all elements are private to our package)
+.code private.go
+
+* Field Tags
+.play field_tags.go
+
+* Empty Values
+.play empty_values.go
+
+* Omit Empty
+.play omit_empty.go
+
+* Adding Items to the struct
+.play extra_items.go /^type Pizza/,$
+
+* Hiding Items from json
+.play hiding_items.go /^type Pizza/,$
+
+* More fun with Field Tags
+- Omit empty without tags
+.play notags.go /^type Pizza/,$
+
+* Crazy Stuff
+- What if you had a json tag that was called "-"
+.play crazy_stuff.go /^type Pizza/,$
+
+* Multiple Field Tags with other packages
+.play xml.go
+
+* Encoder
+- func NewEncoder(w io.Writer) *Encoder - NewEncoder returns a new encoder that writes to w.
+- func (enc *Encoder) SetIndent(prefix, indent string) - Set indentation.
+- func (enc *Encoder) Encode(v interface{}) error - Encode writes the JSON encoding of v to the stream, followed by a newline character.
+.play encoder.go /type/,$
+
+* HTML Encoding
+.play html_gotcha.go
+
+* HTML Encoding with Custom Encoder
+- func (enc *Encoder) SetEscapeHTML(on bool) - Enable/Disable JSON HTML encoding
+.play html.go /type/,$
+
+* Marshaling a nil
+.play enc_nil.go /type/,$
+
+* JSON within JSON
+.play enc_raw_json1.go /type/,$
+
+* JSON Raw Message
+- type RawMessage - RawMessage is a raw encoded JSON value. It implements Marshaler and Unmarshaler and can be used to delay JSON decoding or precompute a JSON encoding.
+.play enc_raw_json2.go /type/,$
+
+* Custom Encoding
+    type Marshaler interface {
+        MarshalJSON() ([]byte, error)
+    }
+.play custom_marshal1.go /^type Pizza/,$
+
+* Custom Encoding
+.play custom_marshal2.go /^type Pizza/,$
+
+* Building JSON by hand
+.play custom_marshal3.go /^type Pizza/,$
+
+* Complex Example
+.play complex.go /^type Toppings/,/$^/
+
+* Unmarshaling
+
+- JSON -> Golang data strucutures
+- Sometimes can be a bit tricky
+- JSON is schemaless, you might not get what you expect
+- If using GO, then the same structs can be used between producer and consumer
+
+* Simple Unmarshal
+- func Unmarshal(data []byte, v interface{}) error
+.play basic_unmarshal.go
+
+* Wrong Type
+- GO 1.8 provides a more detailed error on a type error
+.play dec_bad_type.go /type/,$
+
+* Syntax Errors
+- Syntax errors still require you to hunt down the problem
+.play syntax_error.go /type/,$
+
+* Syntax Errors
+- Most common human input syntax error
+.play syntax_error2.go /type/,$
+
+* Did we get the value?
+.play dec_nil.go /type/,$
+
+* Decoding Null
+.play dec_null.go /type/,$
+
+* Custom Unmarshaler
+   type Unmarshaler interface {
+            UnmarshalJSON([]byte) error
+   }
+.play custom_unmarshal1.go /type/,$
+
+* Custom Unmarshaler (sub-type)
+.play custom_unmarshal2.go /type/,$
+
+* Custom Unmarshaler (struct)
+.play custom_unmarshal3.go /type/,$
+
+* Custom Unmarshaler (struct)
+.play custom_unmarshal4.go /type/,$
+
+* Unmarshaling into a map
+.play map_unmarshal1.go
+
+* Unmarshaling into a map (Using Decoder)
+- func NewDecoder(r io.Reader) *Decoder - NewDecoder returns a new decoder that reads from r.
+- func (dec *Decoder) Decode(v interface{}) error - Decode reads the next JSON-encoded value from its input and stores it in the value pointed to by v.
+.play map_unmarshal2.go /func/,$
+
+* Unmarshaling into a map - The Number Problem
+.play number_problem1.go  /type/,$
+
+* Unmarshaling into a map - The Number Problem (Use Number)
+- func (dec *Decoder) UseNumber() - UseNumber causes the Decoder to unmarshal a number into an interface{} as a Number instead of as a float64.
+.play number_problem2.go  /func/,$
+
+* Unmarshaling into a map - The Number Problem (interface conversion)
+.play number_problem3.go  /dec :=/,/%#v/
+
+* Unmarshaling into a map - The Number Problem (bad number)
+.play number_problem4.go  /js :=/,/%#v/
+
+* Unmarshaling into a map - The Interface Problem (slices)
+.play interface_problem1.go  /func/,$
+
+* Unmarshaling into a map - The Interface Problem (slices)
+.play interface_problem2.go  /func/,$
+
+* Unmarshaling into a map - The Interface Problem (map)
+.play interface_problem3.go  /func/,$
+
+* JSON Types
+  bool, for JSON booleans
+  float64, for JSON numbers
+  string, for JSON strings
+  []interface{}, for JSON arrays
+  map[string]interface{}, for JSON objects
+  nil for JSON null
+
+* Decoding Raw Json (encoding example)
+.play enc_raw_json2.go
+
+* Decoding Raw Json (decoding example)
+.play dec_raw_json1.go
+
+* Decoding Raw Json
+.play dec_raw_json2.go /func/,$
+
+* Decoding JSON by Hand
+- func (dec *Decoder) Token() (Token, error)  - Get Next token
+- func (dec *Decoder) More() bool - Is there more to read?
+- func (dec *Decoder) Buffered() io.Reader - Get the rest of the input stream
+.play dec_token.go /func/,$
+
+* Tokens
+- type Token - A Token holds a value of one of these types:
+
+    Delim, for the four JSON delimiters [ ] { }
+    bool, for JSON booleans
+    float64, for JSON numbers
+    Number, for JSON numbers
+    string, for JSON string literals
+    nil, for JSON null
+
+* New with GO 1.10
+- func (*Decoder) DisallowUnknownFields - Causes the Decoder to return an error when the destination is a struct and the input contains object keys which do not match any non-ignored, exported fields in the destination.
+.code dec_disallow.go /type/,$
+
+* JSON Utilities (Compact)
+- func Compact(dst *bytes.Buffer, src []byte) error - Compact appends to dst the JSON-encoded src with insignificant space characters elided.
+.play compact.go
+
+* JSON Utilities (Indent)
+- func Indent(dst *bytes.Buffer, src []byte, prefix, indent string) error
+.play indent.go
+
+* JSON Utilties (HTML Escape)
+- func HTMLEscape(dst *bytes.Buffer, src []byte)
+.play html_escape.go
+
+* JSON Utilties (Valid)
+- func Valid(data []byte) bool
+.play valid.go
+

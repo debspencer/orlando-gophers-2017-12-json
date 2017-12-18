@@ -1,0 +1,10 @@
+{
+    "Name": "Veggie Lovers",
+    "Size": "Large",
+    "Slices": 8,
+    "Toppings": [
+        "Peppers",
+        "Onions",
+        "Tomatos"
+    ]
+}
