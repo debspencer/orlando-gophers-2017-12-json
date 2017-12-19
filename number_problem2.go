@@ -3,7 +3,6 @@ package main
 import "bytes"
 import "encoding/json"
 import "fmt"
-import "log"
 
 type Pizza struct {
     Name       string

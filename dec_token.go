@@ -20,7 +20,7 @@ func main() {
             reader := dec.Buffered()
             remaining := make([]byte, 1024)
             n, err := reader.Read(remaining)
-            fmt.Printf(" -- %d bytes remaing, '%s' (%v)", n, string(remaining), err)
+            fmt.Printf(" -- %d bytes remaing, '%s' (%v)\n", n, string(remaining), err)
         }
     }
 }
